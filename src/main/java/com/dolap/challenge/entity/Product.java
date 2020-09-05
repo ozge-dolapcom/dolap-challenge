@@ -3,6 +3,7 @@ package com.dolap.challenge.entity;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.ManyToOne;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Positive;
@@ -44,6 +45,9 @@ public class Product {
     @Positive(message = "{com.dolap.challenge.entity.Product.price.validation.positiveMessage}")
     private BigDecimal price;
 
+    @ManyToOne(optional = false)
+    private Category category;
+
     public Long getId() {
         return id;
     }
@@ -82,5 +86,13 @@ public class Product {
 
     public void setPrice(BigDecimal price) {
         this.price = price;
+    }
+
+    public Category getCategory() {
+        return category;
+    }
+
+    public void setCategory(Category category) {
+        this.category = category;
     }
 }
