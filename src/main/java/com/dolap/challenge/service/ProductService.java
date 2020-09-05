@@ -36,7 +36,7 @@ public class ProductService {
     }
 
     /**
-     * Adds a new product and saves it through the reposity.
+     * Adds a new product and saves it through the repository.
      * Once saved, the updated product is returned back to the caller
      *
      * @param product is the product to be saved
@@ -85,7 +85,7 @@ public class ProductService {
 
     /**
      * Given the id of the product, it is updated with the new values provided
-     * Incase the provided id is not valid, @{see ProductNotFoundException} is thrown
+     * In case the provided id is not valid, @{see ProductNotFoundException} is thrown
      *
      * @param id is the id of the product you want to update
      * @param updatedProduct is the values you want to update to

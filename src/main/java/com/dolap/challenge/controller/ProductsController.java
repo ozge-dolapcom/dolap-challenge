@@ -24,7 +24,7 @@ public class ProductsController extends BaseController {
     }
 
     /**
-     * Adds a product in the database.
+     * Adds a new product to the database.
      * Validates the request body to see if it's valid or not.
      *
      * @param newProduct is the product we want to save

@@ -1,7 +1,11 @@
 package com.dolap.challenge.entity;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import javax.persistence.*;
+import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 import java.util.List;
 
 @Entity
@@ -17,18 +21,18 @@ public class Category {
     @NotBlank(message = "{com.dolap.challenge.entity.Category.description.validation.notBlankMessage}")
     private String description;
 
-    @OneToMany(mappedBy = "parentCategory",
-            fetch = FetchType.EAGER,
-            cascade =  CascadeType.ALL,
-            orphanRemoval = true)
+    @OneToMany(mappedBy = "parentCategory", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("orderNum ASC")
     private List<Category> subCategoryList;
 
-    @ManyToOne
-    @JoinColumn(name = "parent_category_id", nullable = true)
+    @ManyToOne(fetch = FetchType.LAZY, optional = true)
+    @JoinColumn(name = "parent_category_id")
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private Category parentCategory;
 
-    @OneToMany(mappedBy = "category")
-    private List<Product> productList;
+    @NotNull(message = "{com.dolap.challenge.entity.Category.orderNum.validation.notNullMessage}")
+    @Min(value = 0, message = "{com.dolap.challenge.entity.Category.orderNum.validation.minMessage}")
+    private Integer orderNum;
 
     public Long getId() {
         return id;
@@ -70,11 +74,11 @@ public class Category {
         this.parentCategory = parentCategory;
     }
 
-    public List<Product> getProductList() {
-        return productList;
+    public Integer getOrderNum() {
+        return orderNum;
     }
 
-    public void setProductList(List<Product> productList) {
-        this.productList = productList;
+    public void setOrderNum(Integer orderNum) {
+        this.orderNum = orderNum;
     }
 }

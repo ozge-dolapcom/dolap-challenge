@@ -1,9 +1,6 @@
 package com.dolap.challenge.entity;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.ManyToOne;
+import javax.persistence.*;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Positive;
@@ -40,12 +37,12 @@ public class Product {
     private Integer remainingStockCount;
 
     /**
-     * Price of an individual product (quantity - 1)
+     * Price of an individual product
      */
     @Positive(message = "{com.dolap.challenge.entity.Product.price.validation.positiveMessage}")
     private BigDecimal price;
 
-    @ManyToOne(optional = false)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     private Category category;
 
     public Long getId() {

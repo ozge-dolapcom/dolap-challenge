@@ -1,6 +1,7 @@
 package com.dolap.challenge.controller;
 
 import com.dolap.challenge.exception.ApiExceptionResponse;
+import com.dolap.challenge.exception.CategoryNotFoundException;
 import com.dolap.challenge.exception.OutOfStockException;
 import com.dolap.challenge.exception.ProductNotFoundException;
 import org.springframework.http.HttpStatus;
@@ -59,6 +60,7 @@ public class BaseController {
     private HttpStatus statusCodeForException(Exception exception) {
         if (exception instanceof OutOfStockException
                 || exception instanceof ProductNotFoundException
+                || exception instanceof CategoryNotFoundException
                 || exception instanceof MethodArgumentNotValidException) {
             return HttpStatus.BAD_REQUEST;
         }
