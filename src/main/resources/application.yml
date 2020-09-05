@@ -2,13 +2,24 @@ server:
   port: 8080
 spring:
   datasource:
-    url: jdbc:hsqldb:hsql:/localhost:9001/main/db
-    driverClassName: org.hsqldb.jdbcDriver
+    platform: postgres
+    url: jdbc:postgresql://localhost:5432/main
+    driverClassName: org.postgresql.Driver
     username: root
     password: pass
+#  datasource:
+#    url: jdbc:hsqldb:hsql:/localhost:9001/main/db
+#    driverClassName: org.hsqldb.jdbcDriver
+#    username: root
+#    password: pass
   jpa:
     show-sql: true
     open-in-view: false
     hibernate:
       ddl-auto: update
       use-new-id-generator-mappings: false
+    properties:
+      hibernate:
+        jdbc:
+          lob:
+            non_contextual_creation: true
