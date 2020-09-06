@@ -1,8 +1,11 @@
 package com.dolap.challenge.controller;
 
 import com.dolap.challenge.configuration.Messages;
+import com.dolap.challenge.entity.Category;
 import com.dolap.challenge.entity.Product;
+import com.dolap.challenge.exception.CategoryNotFoundException;
 import com.dolap.challenge.exception.ProductNotFoundException;
+import com.dolap.challenge.service.CategoryService;
 import com.dolap.challenge.service.ProductService;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -38,22 +41,96 @@ public class ProductsControllerIT {
     @Autowired
     private ProductService productService;
 
+    @Autowired
+    private CategoryService categoryService;
+
     private JsonObject productJson;
     private Product product;
 
+    private Category rootCategory;
+    private Category child1Category;
+    private Category child2Category;
+    private Category child11Category;
+    private Category child12Category;
+
     @Before
     public void setup() {
-        productJson = new JsonObject();
-        productJson.addProperty("name", "The great product");
-        productJson.addProperty("description", "This product will help me get thru the interview process :fingers crossed:");
-        productJson.addProperty("remainingStockCount", 99);
-        productJson.addProperty("price", new BigDecimal("9.99"));
+        setupCategoryTree();
 
         product = new Product();
-        product.setName("The greatest product");
-        product.setDescription("Some random product description goes here");
-        product.setRemainingStockCount(102);
-        product.setPrice(new BigDecimal("45.98"));
+        product.setName("Mavi Elbise");
+        product.setDescription("Mavi renkte bir elbisedir");
+        product.setRemainingStockCount(99);
+        product.setPrice(new BigDecimal("9.99"));
+        product.setCategory(child11Category);
+
+        productJson = new JsonObject();
+        productJson.addProperty("name", product.getName());
+        productJson.addProperty("description", product.getDescription());
+        productJson.addProperty("remainingStockCount", product.getRemainingStockCount());
+        productJson.addProperty("price", product.getPrice());
+
+        JsonObject categoryJson = new JsonObject();
+        categoryJson.addProperty("id", product.getCategory().getId());
+        productJson.add("category", categoryJson);
+    }
+
+    private void setupCategoryTree() {
+        rootCategory = new Category();
+        rootCategory.setName("Kadin");
+        rootCategory.setDescription("Kadin kategorisi");
+        rootCategory.setOrderNum(0);
+        rootCategory = categoryService.addCategory(rootCategory);
+
+        child1Category = new Category();
+        child1Category.setName("Giyim");
+        child1Category.setDescription("Kadin+giyim kategorisi");
+        child1Category.setOrderNum(0);
+        child1Category.setParentCategory(rootCategory);
+        categoryService.addCategory(child1Category);
+
+        child11Category = new Category();
+        child11Category.setName("Elbise");
+        child11Category.setDescription("Kadin+giyim+elbise kategorisi");
+        child11Category.setOrderNum(0);
+        child11Category.setParentCategory(child1Category);
+        categoryService.addCategory(child11Category);
+
+        child12Category = new Category();
+        child12Category.setName("Pantalon");
+        child12Category.setDescription("Kadin+giyim+pantalon kategorisi");
+        child12Category.setOrderNum(1);
+        child12Category.setParentCategory(child1Category);
+        categoryService.addCategory(child12Category);
+
+        child2Category = new Category();
+        child2Category.setName("Ayakkabi");
+        child2Category.setDescription("Kadin+ayakkabi kategorisi");
+        child2Category.setOrderNum(0);
+        child2Category.setParentCategory(rootCategory);
+        categoryService.addCategory(child2Category);
+    }
+
+    private void addProducts() {
+        int productSize = 30;
+        for(int i = 1; i <= productSize; i++) {
+            Product product = new Product();
+            product.setName("Test product name " + i);
+            product.setDescription("Test product desc " + i);
+            product.setRemainingStockCount(i);
+            product.setPrice(new BigDecimal(i * 10));
+
+            if(i > 0 && i <= 10){
+                product.setCategory(child1Category);
+            } else if(i > 10 && i <= 20){
+                product.setCategory(child2Category);
+            } else {
+                product.setCategory(child12Category);
+            }
+
+            productService.addProduct(product);
+            // ignore result
+        }
     }
 
     @Test
@@ -68,6 +145,7 @@ public class ProductsControllerIT {
         Assert.assertEquals(HttpStatus.OK.value(), mvcResult.getResponse().getStatus());
         Assert.assertNotNull(responseJson);
         Assert.assertEquals(productJson.get("name").getAsString(), responseJson.get("name").getAsString());
+        Assert.assertEquals(productJson.get("category").getAsJsonObject().get("id"), responseJson.get("category").getAsJsonObject().get("id"));
         Assert.assertNotNull(responseJson.get("id").getAsLong());
     }
 
@@ -89,24 +167,38 @@ public class ProductsControllerIT {
     }
 
     @Test
-    public void should_get_products() throws Exception {
-        int productSize = 30;
-        for(int i = 1; i <= productSize; i++) {
-            Product product = new Product();
-            product.setName("Test product name " + i);
-            product.setDescription("Test product desc " + i);
-            product.setRemainingStockCount(i);
-            product.setPrice(new BigDecimal(i * 10));
+    public void should_throw_ex_when_add_product_with_invalid_category_given() throws Exception {
+        MockHttpServletRequestBuilder request = MockMvcRequestBuilders.post("/products");
 
-            productService.addProduct(product);
-            // ignore result
-        }
+        productJson.remove("category");
+        JsonObject categoryJson = new JsonObject();
+        categoryJson.addProperty("id", Long.valueOf(99999999));
+        productJson.add("category", categoryJson);
 
-        Integer limit = 2;
+        request.content(productJson.toString());
+        request.contentType("application/json");
+        String localeValue = "tr";
+        request.header("Accept-Language", localeValue);
+
+        MvcResult mvcResult = mvc.perform(request).andReturn();
+        JsonObject responseJson = new JsonParser().parse(mvcResult.getResponse().getContentAsString()).getAsJsonObject();
+
+        Assert.assertEquals(HttpStatus.BAD_REQUEST.value(), mvcResult.getResponse().getStatus());
+        Assert.assertNotNull(responseJson);
+        Assert.assertEquals(messages.get(CategoryNotFoundException.CATEGORY_NOT_FOUND_EXCEPTION_MESSAGE_KEY, java.util.Locale.forLanguageTag(localeValue)), responseJson.get("message").getAsString());
+    }
+
+    @Test
+    public void should_get_products_child1Category() throws Exception {
+        addProducts();
+
+        Integer limit = 10;
+        Integer page = 0;
         MockHttpServletRequestBuilder request = MockMvcRequestBuilders.get("/products");
+        request.param("categoryId", child1Category.getId().toString());
         request.param("sortBy", "id");
-        request.param("sortOrder", "desc");
-        request.param("page", "0");
+        request.param("sortOrder", "asc");
+        request.param("page", page.toString());
         request.param("limit", limit.toString());
         request.contentType("application/json");
 
@@ -117,10 +209,27 @@ public class ProductsControllerIT {
         Assert.assertNotNull(responseJson);
         Assert.assertEquals(limit.intValue(), responseJson.get("content").getAsJsonArray().size());
         Assert.assertFalse(responseJson.get("last").getAsBoolean());
+        Assert.assertEquals(Integer.valueOf(20), Integer.valueOf(responseJson.get("totalElements").getAsInt()));
 
         long firstId = responseJson.get("content").getAsJsonArray().get(0).getAsJsonObject().get("id").getAsLong();
         long lastId = responseJson.get("content").getAsJsonArray().get(limit.intValue() - 1).getAsJsonObject().get("id").getAsLong();
-        Assert.assertTrue(firstId > lastId); // check sort desc
+        Assert.assertTrue(firstId < lastId); // check sort asc
+    }
+
+    @Test
+    public void should_throw_ex_get_products_empty_category() throws Exception {
+        MockHttpServletRequestBuilder request = MockMvcRequestBuilders.get("/products");
+        request.param("categoryId", String.valueOf(99999999)); // invalid id
+        request.contentType("application/json");
+        String localeValue = "tr";
+        request.header("Accept-Language", localeValue);
+
+        MvcResult mvcResult = mvc.perform(request).andReturn();
+        JsonObject responseJson = new JsonParser().parse(mvcResult.getResponse().getContentAsString()).getAsJsonObject();
+
+        Assert.assertEquals(HttpStatus.BAD_REQUEST.value(), mvcResult.getResponse().getStatus());
+        Assert.assertNotNull(responseJson);
+        Assert.assertEquals(messages.get(CategoryNotFoundException.CATEGORY_NOT_FOUND_EXCEPTION_MESSAGE_KEY, java.util.Locale.forLanguageTag(localeValue)), responseJson.get("message").getAsString());
     }
 
     @Test

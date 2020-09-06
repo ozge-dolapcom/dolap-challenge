@@ -87,8 +87,6 @@ public class ProductServiceTest {
         child2Category.setOrderNum(0);
         child2Category.setParentCategory(rootCategory);
         categoryService.addCategory(child2Category);
-
-        rootCategory = categoryService.findCategory(rootCategory.getId());
     }
 
     private void addProducts() {
