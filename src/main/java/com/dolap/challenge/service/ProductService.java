@@ -48,7 +48,7 @@ public class ProductService {
      * @return the product that is saved successfully
      */
     public Product addProduct(Product product) {
-        if(product.getCategory().getId() == null){
+        if(product.getCategory() == null || product.getCategory().getId() == null){
             throw new CategoryNotFoundException(messages.get(CategoryNotFoundException.CATEGORY_NOT_FOUND_EXCEPTION_MESSAGE_KEY));
         }
         Category category = categoryService.findCategory(product.getCategory().getId());
@@ -115,7 +115,7 @@ public class ProductService {
      * @return updated product when successful
      */
     public Product updateProduct(Long id, Product updatedProduct) {
-        if(updatedProduct.getCategory().getId() == null){
+        if(updatedProduct.getCategory() == null || updatedProduct.getCategory().getId() == null){
             throw new CategoryNotFoundException(messages.get(CategoryNotFoundException.CATEGORY_NOT_FOUND_EXCEPTION_MESSAGE_KEY));
         }
         Category updatedCategory = categoryService.findCategory(updatedProduct.getCategory().getId());

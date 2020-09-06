@@ -1,6 +1,8 @@
 package com.dolap.challenge.service;
 
+import com.dolap.challenge.entity.Category;
 import com.dolap.challenge.entity.Product;
+import com.dolap.challenge.exception.CategoryNotFoundException;
 import com.dolap.challenge.exception.OutOfStockException;
 import com.dolap.challenge.exception.ProductNotFoundException;
 import org.junit.Assert;
@@ -10,6 +12,7 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.Page;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.test.context.junit4.SpringRunner;
 
@@ -28,15 +31,86 @@ public class ProductServiceTest {
     @Autowired
     private ProductService productService;
 
+    @Autowired
+    private CategoryService categoryService;
+
+    private Category rootCategory;
+    private Category child1Category;
+    private Category child2Category;
+    private Category child11Category;
+    private Category child12Category;
     private Product product;
 
     @Before
     public void setup() {
+        setupCategoryTree();
+
         product = new Product();
-        product.setName("The greatest product");
-        product.setDescription("Some random product description goes here");
+        product.setName("Mavi Elbise");
+        product.setDescription("Mavi renkte bir elbisedir");
         product.setRemainingStockCount(99);
         product.setPrice(new BigDecimal("9.99"));
+        product.setCategory(child11Category);
+    }
+
+    private void setupCategoryTree() {
+        rootCategory = new Category();
+        rootCategory.setName("Kadin");
+        rootCategory.setDescription("Kadin kategorisi");
+        rootCategory.setOrderNum(0);
+        rootCategory = categoryService.addCategory(rootCategory);
+
+        child1Category = new Category();
+        child1Category.setName("Giyim");
+        child1Category.setDescription("Kadin+giyim kategorisi");
+        child1Category.setOrderNum(0);
+        child1Category.setParentCategory(rootCategory);
+        categoryService.addCategory(child1Category);
+
+        child11Category = new Category();
+        child11Category.setName("Elbise");
+        child11Category.setDescription("Kadin+giyim+elbise kategorisi");
+        child11Category.setOrderNum(0);
+        child11Category.setParentCategory(child1Category);
+        categoryService.addCategory(child11Category);
+
+        child12Category = new Category();
+        child12Category.setName("Pantalon");
+        child12Category.setDescription("Kadin+giyim+pantalon kategorisi");
+        child12Category.setOrderNum(1);
+        child12Category.setParentCategory(child1Category);
+        categoryService.addCategory(child12Category);
+
+        child2Category = new Category();
+        child2Category.setName("Ayakkabi");
+        child2Category.setDescription("Kadin+ayakkabi kategorisi");
+        child2Category.setOrderNum(0);
+        child2Category.setParentCategory(rootCategory);
+        categoryService.addCategory(child2Category);
+
+        rootCategory = categoryService.findCategory(rootCategory.getId());
+    }
+
+    private void addProducts() {
+        int productSize = 30;
+        for(int i = 1; i <= productSize; i++) {
+            Product product = new Product();
+            product.setName("Test product name " + i);
+            product.setDescription("Test product desc " + i);
+            product.setRemainingStockCount(i);
+            product.setPrice(new BigDecimal(i * 10));
+
+            if(i > 0 && i <= 10){
+                product.setCategory(child1Category);
+            } else if(i > 10 && i <= 20){
+                product.setCategory(child2Category);
+            } else {
+                product.setCategory(child12Category);
+            }
+
+            productService.addProduct(product);
+            // ignore result
+        }
     }
 
     @Test
@@ -46,6 +120,7 @@ public class ProductServiceTest {
         Assert.assertNotNull(addedProduct);
         Assert.assertEquals(addedProduct.getId(), product.getId());
         Assert.assertEquals(addedProduct.getName(), product.getName());
+        Assert.assertEquals(addedProduct.getCategory().getId(), product.getCategory().getId());
     }
 
     @Test
@@ -66,6 +141,42 @@ public class ProductServiceTest {
     }
 
     @Test
+    public void should_throw_exception_when_adding_a_product_with_empty_category() {
+        product.setCategory(null);
+
+        Exception exception = null;
+        Product addedProduct = null;
+        try {
+            productService.addProduct(product);
+        } catch (Exception e) {
+            exception = e;
+        }
+
+        Assert.assertNull(addedProduct);
+        Assert.assertNotNull(exception);
+        Assert.assertNull(product.getId());
+        Assert.assertTrue(exception instanceof CategoryNotFoundException);
+    }
+
+    @Test
+    public void should_throw_exception_when_adding_a_product_with_empty_category_id() {
+        product.getCategory().setId(null);
+
+        Exception exception = null;
+        Product addedProduct = null;
+        try {
+            productService.addProduct(product);
+        } catch (Exception e) {
+            exception = e;
+        }
+
+        Assert.assertNull(addedProduct);
+        Assert.assertNotNull(exception);
+        Assert.assertNull(product.getId());
+        Assert.assertTrue(exception instanceof CategoryNotFoundException);
+    }
+
+    @Test
     public void should_find_product_by_id() {
         Product addedProduct = productService.addProduct(product);
 
@@ -73,6 +184,7 @@ public class ProductServiceTest {
         Assert.assertNotNull(foundProduct);
         Assert.assertEquals(foundProduct.getId(), addedProduct.getId());
         Assert.assertEquals(foundProduct.getPrice(), addedProduct.getPrice());
+        Assert.assertEquals(foundProduct.getCategory().getId(), addedProduct.getCategory().getId());
     }
 
     @Test
@@ -90,39 +202,51 @@ public class ProductServiceTest {
         Assert.assertTrue(exception instanceof ProductNotFoundException);
     }
 
-//    @Test
-//    public void should_get_all_products() {
-//        int productSize = 30;
-//        for(int i = 1; i <= productSize; i++) {
-//            Product product = new Product();
-//            product.setName("Test product name " + i);
-//            product.setDescription("Test product desc " + i);
-//            product.setRemainingStockCount(i);
-//            product.setPrice(new BigDecimal(i * 10));
-//
-//            productService.addProduct(product);
-//            // ignore result
-//        }
-//
-//        String sortBy = "id";
-//        String sortOrder = "desc";
-//        Integer page = 0;
-//        Integer limit = 10;
-//        Page<Product> responseProducts = productService.getAll(null, sortBy, sortOrder, page, limit);
-//        Assert.assertNotNull(responseProducts);
-//        Assert.assertEquals(limit, Integer.valueOf(responseProducts.getContent().size()));
-//        Assert.assertFalse(responseProducts.isLast());
-//
-//        Product product1 = responseProducts.getContent().get(0);
-//        Product product2 = responseProducts.getContent().get(responseProducts.getContent().size() - 1);
-//
-//        Assert.assertTrue(product1.getId() > product2.getId()); // check sort desc
-//    }
+    @Test
+    public void should_get_all_products_child1Category() {
+        addProducts();
+
+        String sortBy = "id";
+        String sortOrder = "desc";
+        Integer page = 1;
+        Integer limit = 10;
+        Page<Product> responseProducts = productService.getAll(child1Category.getId(), sortBy, sortOrder, page, limit);
+        Assert.assertNotNull(responseProducts);
+        Assert.assertEquals(limit, Integer.valueOf(responseProducts.getContent().size()));
+        Assert.assertTrue(responseProducts.isLast());
+        Assert.assertEquals(Integer.valueOf(20), Integer.valueOf((int)responseProducts.getTotalElements())); // child1Category + child12Category
+
+        Product product1 = responseProducts.getContent().get(0);
+        Product product2 = responseProducts.getContent().get(responseProducts.getContent().size() - 1);
+
+        Assert.assertTrue(product1.getId() > product2.getId()); // check sort desc
+    }
+
+    @Test
+    public void should_get_all_products_child2Category() {
+        addProducts();
+
+        String sortBy = "id";
+        String sortOrder = "asc";
+        Integer page = 0;
+        Integer limit = 2;
+        Page<Product> responseProducts = productService.getAll(child2Category.getId(), sortBy, sortOrder, page, limit);
+        Assert.assertNotNull(responseProducts);
+        Assert.assertEquals(limit, Integer.valueOf(responseProducts.getContent().size()));
+        Assert.assertFalse(responseProducts.isLast());
+        Assert.assertEquals(Integer.valueOf(10), Integer.valueOf((int)responseProducts.getTotalElements())); // child2Category only
+
+        Product product1 = responseProducts.getContent().get(0);
+        Product product2 = responseProducts.getContent().get(responseProducts.getContent().size() - 1);
+
+        Assert.assertTrue(product1.getId() < product2.getId()); // check sort asc
+    }
 
     @Test
     public void should_update_product_when_trying_update_with_valid_parameters() {
         Product addedProduct = productService.addProduct(product);
         addedProduct.setName("updated name goes here");
+        addedProduct.setCategory(child12Category);
 
         Product updatedProduct = productService.updateProduct(addedProduct.getId(), addedProduct);
         Product foundProduct = productService.findProduct(addedProduct.getId());
@@ -133,10 +257,12 @@ public class ProductServiceTest {
         Assert.assertEquals(foundProduct.getId(), addedProduct.getId());
         Assert.assertEquals(updatedProduct.getId(), addedProduct.getId());
         Assert.assertEquals(foundProduct.getName(), addedProduct.getName());
+        Assert.assertEquals(foundProduct.getCategory().getId(), addedProduct.getCategory().getId());
+        Assert.assertEquals(foundProduct.getCategory().getId(), updatedProduct.getCategory().getId());
     }
 
     @Test
-    public void should_throw_exception_when_trying_update_with_invalid_paramters() {
+    public void should_throw_exception_when_trying_update_with_invalid_parameters() {
         Product addedProduct = productService.addProduct(product);
         addedProduct.setRemainingStockCount(-1);
 
@@ -153,6 +279,48 @@ public class ProductServiceTest {
         Assert.assertNotNull(exception);
         Assert.assertEquals(foundProduct.getId(), addedProduct.getId());
         Assert.assertNotEquals(foundProduct.getRemainingStockCount(), addedProduct.getRemainingStockCount());
+    }
+
+    @Test
+    public void should_throw_exception_when_trying_update_with_empty_category() {
+        Product addedProduct = productService.addProduct(product);
+        addedProduct.getCategory().setId(null);
+
+        Exception exception = null;
+        Product updatedProduct = null;
+        try {
+            updatedProduct = productService.updateProduct(addedProduct.getId(), addedProduct);
+        } catch (Exception e) {
+            exception = e;
+        }
+        Product foundProduct = productService.findProduct(addedProduct.getId());
+
+        Assert.assertNull(updatedProduct);
+        Assert.assertNotNull(exception);
+        Assert.assertTrue(exception instanceof CategoryNotFoundException);
+        Assert.assertEquals(foundProduct.getId(), addedProduct.getId());
+        Assert.assertNotNull(foundProduct.getCategory().getId());
+    }
+
+    @Test
+    public void should_throw_exception_when_trying_update_with_invalid_category() {
+        Product addedProduct = productService.addProduct(product);
+        addedProduct.getCategory().setId(Long.valueOf(99999999));
+
+        Exception exception = null;
+        Product updatedProduct = null;
+        try {
+            updatedProduct = productService.updateProduct(addedProduct.getId(), addedProduct);
+        } catch (Exception e) {
+            exception = e;
+        }
+        Product foundProduct = productService.findProduct(addedProduct.getId());
+
+        Assert.assertNull(updatedProduct);
+        Assert.assertNotNull(exception);
+        Assert.assertTrue(exception instanceof CategoryNotFoundException);
+        Assert.assertEquals(foundProduct.getId(), addedProduct.getId());
+        Assert.assertNotNull(foundProduct.getCategory().getId());
     }
 
     @Test
