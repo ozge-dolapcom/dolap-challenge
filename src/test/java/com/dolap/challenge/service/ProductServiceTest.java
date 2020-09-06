@@ -243,6 +243,38 @@ public class ProductServiceTest {
     }
 
     @Test
+    public void should_get_only_one_product_child11Category() {
+        Product addedProduct = productService.addProduct(product); // add product to child11Category
+
+        String sortBy = "id";
+        String sortOrder = "asc";
+        Integer page = 0;
+        Integer limit = 2;
+        Page<Product> responseProducts = productService.getAll(child11Category.getId(), sortBy, sortOrder, page, limit);
+        Assert.assertNotNull(responseProducts);
+        Assert.assertNotEquals(limit, Integer.valueOf(responseProducts.getContent().size()));
+        Assert.assertTrue(responseProducts.isLast());
+        Assert.assertEquals(Integer.valueOf(1), Integer.valueOf((int)responseProducts.getTotalElements())); // product only
+        Assert.assertEquals(Integer.valueOf(1), Integer.valueOf(responseProducts.getContent().size())); // product only
+
+        Assert.assertEquals(responseProducts.getContent().get(0).getId(), addedProduct.getId());
+    }
+
+    @Test
+    public void should_get_empty_product_list_child2Category() {
+        Product addedProduct = productService.addProduct(product); // add product to child11Category
+
+        String sortBy = "id";
+        String sortOrder = "asc";
+        Integer page = 0;
+        Integer limit = 2;
+        Page<Product> responseProducts = productService.getAll(child2Category.getId(), sortBy, sortOrder, page, limit);
+        Assert.assertNotNull(responseProducts);
+        Assert.assertEquals(Integer.valueOf(0), Integer.valueOf((int)responseProducts.getTotalElements())); // product only
+        Assert.assertEquals(Integer.valueOf(0), Integer.valueOf(responseProducts.getContent().size())); // product only
+    }
+
+    @Test
     public void should_update_product_when_trying_update_with_valid_parameters() {
         Product addedProduct = productService.addProduct(product);
         addedProduct.setName("updated name goes here");
