@@ -1,8 +1,10 @@
 package com.dolap.challenge.controller;
 
 import com.dolap.challenge.configuration.Messages;
+import com.dolap.challenge.entity.Category;
 import com.dolap.challenge.entity.Product;
 import com.dolap.challenge.exception.OutOfStockException;
+import com.dolap.challenge.service.CategoryService;
 import com.dolap.challenge.service.ProductService;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -40,9 +42,14 @@ public class PaymentsControllerIT {
     private ProductService productService;
 
     @Autowired
+    private CategoryService categoryService;
+
+    @Autowired
     private Messages messages;
 
     private Product product;
+
+    private Category category;
 
     @Before
     public void setup() {
@@ -51,6 +58,14 @@ public class PaymentsControllerIT {
         product.setDescription("This product will help me get thru the interview process :fingers crossed:");
         product.setPrice(new BigDecimal("9.99"));
         product.setRemainingStockCount(99);
+
+        category = new Category();
+        category.setName("Cat cat");
+        category.setDescription("Where kittens hangout");
+        category.setOrderNum(1);
+        categoryService.addCategory(category);
+
+        product.setCategory(category);
         productService.addProduct(product);
     }
 

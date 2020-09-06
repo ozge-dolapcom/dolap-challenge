@@ -3,10 +3,12 @@ package com.dolap.challenge.controller;
 import com.dolap.challenge.configuration.Messages;
 import com.dolap.challenge.entity.Category;
 import com.dolap.challenge.entity.Product;
+import com.dolap.challenge.entity.User;
 import com.dolap.challenge.exception.CategoryNotFoundException;
 import com.dolap.challenge.exception.ProductNotFoundException;
 import com.dolap.challenge.service.CategoryService;
 import com.dolap.challenge.service.ProductService;
+import com.dolap.challenge.service.UserService;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import org.junit.Assert;
@@ -44,6 +46,9 @@ public class ProductsControllerIT {
     @Autowired
     private CategoryService categoryService;
 
+    @Autowired
+    private UserService userService;
+
     private JsonObject productJson;
     private Product product;
 
@@ -53,8 +58,12 @@ public class ProductsControllerIT {
     private Category child11Category;
     private Category child12Category;
 
+    private static String jwtToken;
+
+    private static final String testUserName = "testuser";
+
     @Before
-    public void setup() {
+    public void setup() throws Exception {
         setupCategoryTree();
 
         product = new Product();
@@ -73,6 +82,24 @@ public class ProductsControllerIT {
         JsonObject categoryJson = new JsonObject();
         categoryJson.addProperty("id", product.getCategory().getId());
         productJson.add("category", categoryJson);
+
+        if (jwtToken == null) {
+            jwtToken = getJwtToken();
+        }
+        userService.updateRole(testUserName, User.ROLE_ADMIN);
+    }
+
+    private String getJwtToken() throws Exception {
+        MockHttpServletRequestBuilder request = MockMvcRequestBuilders.post("/auth/register");
+        JsonObject userJson = new JsonObject();
+        userJson.addProperty("username", testUserName);
+        userJson.addProperty("password", "test");
+        request.content(userJson.toString());
+        request.contentType("application/json");
+
+        MvcResult mvcResult = mvc.perform(request).andReturn();
+        JsonObject responseJson = new JsonParser().parse(mvcResult.getResponse().getContentAsString()).getAsJsonObject();
+        return responseJson.get("token").getAsString();
     }
 
     private void setupCategoryTree() {
@@ -138,6 +165,7 @@ public class ProductsControllerIT {
         MockHttpServletRequestBuilder request = MockMvcRequestBuilders.post("/products");
         request.content(productJson.toString());
         request.contentType("application/json");
+        request.header("Authorization", "Bearer " + this.jwtToken);
 
         MvcResult mvcResult = mvc.perform(request).andReturn();
         JsonObject responseJson = new JsonParser().parse(mvcResult.getResponse().getContentAsString()).getAsJsonObject();
@@ -155,6 +183,8 @@ public class ProductsControllerIT {
         productJson.remove("name");
         request.content(productJson.toString());
         request.contentType("application/json");
+        request.header("Authorization", "Bearer " + this.jwtToken);
+
         String localeValue = "tr";
         request.header("Accept-Language", localeValue);
 
@@ -177,6 +207,8 @@ public class ProductsControllerIT {
 
         request.content(productJson.toString());
         request.contentType("application/json");
+        request.header("Authorization", "Bearer " + this.jwtToken);
+
         String localeValue = "tr";
         request.header("Accept-Language", localeValue);
 
@@ -238,6 +270,7 @@ public class ProductsControllerIT {
 
         MockHttpServletRequestBuilder request = MockMvcRequestBuilders.delete("/products/" + addedProduct.getId());
         request.contentType("application/json");
+        request.header("Authorization", "Bearer " + this.jwtToken);
 
         MvcResult mvcResult = mvc.perform(request).andReturn();
         Assert.assertEquals(HttpStatus.OK.value(), mvcResult.getResponse().getStatus());

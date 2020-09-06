@@ -1,4 +1,4 @@
-package com.dolap.challenge.entity;
+package com.dolap.challenge.model;
 
 import javax.persistence.Id;
 import javax.validation.constraints.Min;
@@ -18,7 +18,7 @@ public class PaymentItem {
     /**
      * Amount of the product that will be purchased
      */
-    @Min(value = 1, message = "{com.dolap.challenge.entity.PaymentItem.quantity.validation.minMessage}")
+    @Min(value = 1, message = "{com.dolap.challenge.model.PaymentItem.quantity.validation.minMessage}")
     private Integer quantity;
 
     public Long getProductId() {

@@ -1,9 +1,11 @@
 package com.dolap.challenge.controller;
 
+import com.dolap.challenge.entity.Category;
 import com.dolap.challenge.entity.Payment;
-import com.dolap.challenge.entity.PaymentItem;
+import com.dolap.challenge.model.PaymentItem;
 import com.dolap.challenge.entity.Product;
 import com.dolap.challenge.exception.OutOfStockException;
+import com.dolap.challenge.service.CategoryService;
 import com.dolap.challenge.service.PaymentService;
 import com.dolap.challenge.service.ProductService;
 import org.junit.Assert;
@@ -34,7 +36,12 @@ public class PaymentsControllerTest {
     @Autowired
     private ProductService productService;
 
+    @Autowired
+    private CategoryService categoryService;
+
     private Product product;
+
+    private Category category;
 
     @Before
     public void setup() {
@@ -44,6 +51,13 @@ public class PaymentsControllerTest {
         product.setPrice(new BigDecimal("9.99"));
         product.setRemainingStockCount(99);
 
+        category = new Category();
+        category.setName("Cat cat");
+        category.setDescription("Where kittens hangout");
+        category.setOrderNum(1);
+        categoryService.addCategory(category);
+
+        product.setCategory(category);
         productService.addProduct(product);
     }
 

@@ -1,3 +1,5 @@
+jwt:
+  secret: super-complicated-secret-goes-here
 spring:
   datasource:
     url: jdbc:hsqldb:hsql:/localhost:9001/test/db

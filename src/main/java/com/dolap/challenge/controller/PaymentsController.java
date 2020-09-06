@@ -1,7 +1,7 @@
 package com.dolap.challenge.controller;
 
 import com.dolap.challenge.entity.Payment;
-import com.dolap.challenge.entity.PaymentItem;
+import com.dolap.challenge.model.PaymentItem;
 import com.dolap.challenge.entity.Product;
 import com.dolap.challenge.service.PaymentService;
 import com.dolap.challenge.service.ProductService;

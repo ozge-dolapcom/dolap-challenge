@@ -1,5 +1,7 @@
 server:
   port: 8080
+jwt:
+  secret: super-complicated-secret-goes-here
 spring:
   datasource:
     platform: postgres
