@@ -275,7 +275,7 @@ public class ProductServiceTest {
     }
 
     @Test
-    public void should_throw_exception_when_trying_get_all_products_invalid_category() {
+    public void should_throw_exception_when_trying_to_get_all_products_invalid_category() {
         String sortBy = "id";
         String sortOrder = "asc";
         Integer page = 0;
