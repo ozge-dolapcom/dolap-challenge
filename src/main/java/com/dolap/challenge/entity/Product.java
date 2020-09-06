@@ -1,8 +1,14 @@
 package com.dolap.challenge.entity;
 
-import javax.persistence.*;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import javax.persistence.ManyToOne;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
 import java.math.BigDecimal;
 
@@ -33,16 +39,20 @@ public class Product {
      * Defines the number of available stocks for the product where the merchant
      * can collect the proceeds for
      */
+    @NotNull(message = "{com.dolap.challenge.entity.Product.remainingStockCount.validation.notNullMessage}")
     @Min(value = 0, message = "{com.dolap.challenge.entity.Product.remainingStockCount.validation.minMessage}")
     private Integer remainingStockCount;
 
     /**
      * Price of an individual product
      */
+    @NotNull(message = "{com.dolap.challenge.entity.Product.price.validation.notNullMessage}")
     @Positive(message = "{com.dolap.challenge.entity.Product.price.validation.positiveMessage}")
     private BigDecimal price;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @ManyToOne(optional = false)
+    @NotNull(message = "{com.dolap.challenge.entity.Product.category.validation.notNullMessage}")
+    @JsonIgnoreProperties({"subCategoryList", "orderNum"})
     private Category category;
 
     public Long getId() {

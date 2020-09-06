@@ -46,11 +46,13 @@ public class ProductsController extends BaseController {
      * @return the page information that contains the requested products
      */
     @GetMapping
-    public Page<Product> getProducts(@RequestParam(defaultValue = "id", required = false) String sortBy,
-                                     @RequestParam(defaultValue = "desc", required = false) String sortOrder,
-                                     @RequestParam(defaultValue = "0", required = false) Integer page,
-                                     @RequestParam(defaultValue = "20", required = false) Integer limit) {
-        return productService.getAll(sortBy, sortOrder, page, limit);
+    public Page<Product> getProducts(
+            @RequestParam Long categoryId,
+            @RequestParam(defaultValue = "id", required = false) String sortBy,
+            @RequestParam(defaultValue = "desc", required = false) String sortOrder,
+            @RequestParam(defaultValue = "0", required = false) Integer page,
+            @RequestParam(defaultValue = "20", required = false) Integer limit) {
+        return productService.getAll(categoryId, sortBy, sortOrder, page, limit);
     }
 
     /**

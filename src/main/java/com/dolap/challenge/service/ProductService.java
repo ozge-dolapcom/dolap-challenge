@@ -1,7 +1,9 @@
 package com.dolap.challenge.service;
 
 import com.dolap.challenge.configuration.Messages;
+import com.dolap.challenge.entity.Category;
 import com.dolap.challenge.entity.Product;
+import com.dolap.challenge.exception.CategoryNotFoundException;
 import com.dolap.challenge.exception.OutOfStockException;
 import com.dolap.challenge.exception.ProductNotFoundException;
 import com.dolap.challenge.repository.ProductRepository;
@@ -13,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
 import javax.persistence.LockModeType;
+import java.util.ArrayList;
 
 @Service
 @Transactional
@@ -20,6 +23,7 @@ public class ProductService {
     private EntityManager entityManager;
     private Messages messages;
     private ProductRepository productRepository;
+    private CategoryService categoryService;
 
     /**
      * Constructs a new ProductService with specified product repository,
@@ -29,10 +33,11 @@ public class ProductService {
      * @param entityManager the interface used to lock the records
      * @param messages the interface we used to pull the relevant messages depending on the locale set
      */
-    public ProductService(ProductRepository productRepository, EntityManager entityManager, Messages messages) {
+    public ProductService(ProductRepository productRepository, EntityManager entityManager, Messages messages, CategoryService categoryService) {
         this.productRepository = productRepository;
         this.entityManager = entityManager;
         this.messages = messages;
+        this.categoryService = categoryService;
     }
 
     /**
@@ -43,6 +48,11 @@ public class ProductService {
      * @return the product that is saved successfully
      */
     public Product addProduct(Product product) {
+        if(product.getCategory().getId() == null){
+            throw new CategoryNotFoundException(messages.get(CategoryNotFoundException.CATEGORY_NOT_FOUND_EXCEPTION_MESSAGE_KEY));
+        }
+        Category category = categoryService.findCategory(product.getCategory().getId());
+        product.setCategory(category);
         return productRepository.save(product);
     }
 
@@ -51,14 +61,27 @@ public class ProductService {
      * Ideally we'd use elasticsearch or solr to search the products but in this context
      * loading from the database should be fair enough.
      *
+     *
+     * @param categoryId
      * @param sortBy is the field you want to on
      * @param sortOrder whether it is desc or asc by the sort column {@see sortBy}
      * @param page defines the offset
      * @param limit is the number of total records that will be retrieved from the repository
      * @return a page which contains a list of products that fits the search criteria
      */
-    public Page<Product> getAll(String sortBy, String sortOrder, Integer page, Integer limit) {
-        return productRepository.findAll(PageRequest.of(page, limit, getSort(sortBy, sortOrder)));
+    public Page<Product> getAll(Long categoryId, String sortBy, String sortOrder, Integer page, Integer limit) {
+        Category rootCategory = categoryService.findCategory(categoryId);
+        ArrayList<Long> idList = findAllCategoryTreeIds(rootCategory);
+        return productRepository.findAllByCategory(idList, PageRequest.of(page, limit, getSort(sortBy, sortOrder)));
+    }
+
+    private ArrayList<Long> findAllCategoryTreeIds(Category rootCategory){
+        ArrayList<Long> idList = new ArrayList<>();
+        idList.add(rootCategory.getId());
+        if(rootCategory.getSubCategoryList() != null && !rootCategory.getSubCategoryList().isEmpty()){
+            rootCategory.getSubCategoryList().stream().forEach(subCategory -> idList.addAll(findAllCategoryTreeIds(subCategory)));
+        }
+        return idList;
     }
 
     /**
@@ -92,12 +115,17 @@ public class ProductService {
      * @return updated product when successful
      */
     public Product updateProduct(Long id, Product updatedProduct) {
+        if(updatedProduct.getCategory().getId() == null){
+            throw new CategoryNotFoundException(messages.get(CategoryNotFoundException.CATEGORY_NOT_FOUND_EXCEPTION_MESSAGE_KEY));
+        }
+        Category updatedCategory = categoryService.findCategory(updatedProduct.getCategory().getId());
         return productRepository.findById(id)
                 .map(product -> {
                     product.setName(updatedProduct.getName());
                     product.setDescription(updatedProduct.getDescription());
                     product.setRemainingStockCount(updatedProduct.getRemainingStockCount());
                     product.setPrice(updatedProduct.getPrice());
+                    product.setCategory(updatedCategory);
                     return product;
                 })
                 .orElseThrow(() -> new ProductNotFoundException(messages.get(ProductNotFoundException.PRODUCT_NOT_FOUND_EXCEPTION_MESSAGE_KEY)));
