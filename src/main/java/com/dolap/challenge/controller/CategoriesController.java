@@ -31,7 +31,6 @@ public class CategoriesController extends BaseController{
      */
     @PostMapping
     public Category addCategory(@Valid @RequestBody Category newCategory) {
-        // TODO: check parent category existence?
         return categoryService.addCategory(newCategory);
     }
 
@@ -55,7 +54,6 @@ public class CategoriesController extends BaseController{
      */
     @DeleteMapping("/{id}")
     public void deleteCategory(@PathVariable Long id) {
-        // TODO: check product list before delete!
         categoryService.deleteCategory(id);
     }
 
@@ -79,7 +77,6 @@ public class CategoriesController extends BaseController{
      */
     @PutMapping("/{id}")
     public Category updateCategory(@PathVariable Long id, @Valid @RequestBody Category updatedCategory) {
-        // TODO: check parent category existence?
         return categoryService.updateCategory(id, updatedCategory);
     }
 }
