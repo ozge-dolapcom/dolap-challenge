@@ -275,6 +275,26 @@ public class ProductServiceTest {
     }
 
     @Test
+    public void should_throw_exception_when_trying_get_all_products_invalid_category() {
+        String sortBy = "id";
+        String sortOrder = "asc";
+        Integer page = 0;
+        Integer limit = 2;
+
+        Page<Product> responseProducts = null;
+        Exception exception = null;
+        try {
+            responseProducts = productService.getAll(Long.valueOf(99999999), sortBy, sortOrder, page, limit);
+        } catch (Exception e) {
+            exception = e;
+        }
+
+        Assert.assertNull(responseProducts);
+        Assert.assertNotNull(exception);
+        Assert.assertTrue(exception instanceof CategoryNotFoundException);
+    }
+
+    @Test
     public void should_update_product_when_trying_update_with_valid_parameters() {
         Product addedProduct = productService.addProduct(product);
         addedProduct.setName("updated name goes here");
