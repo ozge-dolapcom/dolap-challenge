@@ -1,4 +1,4 @@
-package com.dolap.challenge.service;
+package com.dolap.challenge.model;
 
 import java.math.BigDecimal;
 

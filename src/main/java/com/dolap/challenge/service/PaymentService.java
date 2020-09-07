@@ -1,6 +1,8 @@
 package com.dolap.challenge.service;
 
 import com.dolap.challenge.entity.Payment;
+import com.dolap.challenge.model.BankPaymentRequest;
+import com.dolap.challenge.model.BankPaymentResponse;
 import com.dolap.challenge.repository.PaymentRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

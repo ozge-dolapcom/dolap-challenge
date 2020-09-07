@@ -47,7 +47,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
         http.csrf().disable()
                 .authorizeRequests()
                 .antMatchers("/auth/**").permitAll()
-                .antMatchers("/payments").permitAll() // TODO
+                .antMatchers("/payments").permitAll()
                 .antMatchers(HttpMethod.GET, "/products", "/products/**").permitAll()
                 .antMatchers(HttpMethod.GET, "/categories", "/categories/**").permitAll()
                 .antMatchers("/products", "/products/**").hasAuthority(User.ROLE_ADMIN)

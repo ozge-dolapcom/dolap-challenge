@@ -1,5 +1,7 @@
 package com.dolap.challenge.service;
 
+import com.dolap.challenge.model.BankPaymentRequest;
+import com.dolap.challenge.model.BankPaymentResponse;
 import org.springframework.stereotype.Service;
 
 @Service
