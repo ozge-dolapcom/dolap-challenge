@@ -16,12 +16,20 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
+/**
+ * This filter is configured to run OncePerRequest before all other operations
+ * It checks the validity of the JWT token if provided any
+ */
 @Component
 public class JwtFilter extends OncePerRequestFilter {
 
     @Autowired
     private CustomUserDetailsService userDetailsService;
 
+    /**
+     * Utility class that provides handful of operations to verify and validate JWT token
+     * and extract information from the token as well.
+     */
     @Autowired
     private JwtTokenUtil jwtTokenUtil;
 

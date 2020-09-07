@@ -19,11 +19,25 @@ public class User implements UserDetails {
     @GeneratedValue
     private Long id;
 
+    /**
+     * Username of the User
+     * Used when logging in - no constraints or anything.
+     * First come, first served, it just have to be unique
+     */
     @Column(unique=true)
     private String username;
 
+    /**
+     * Password of the user
+     * Used when logging in - no constraints or anything.
+     * Could be anything
+     */
     private String password;
 
+    /**
+     * Either ADMIN or USER
+     * ADMIN role will grant you to access some specific endpoints
+     */
     private String role = ROLE_USER;
 
     private Boolean enabled = true;
