@@ -59,7 +59,6 @@ public class ProductsControllerIT {
     private Category child12Category;
 
     private static String jwtToken;
-
     private static final String testUserName = "testuser";
 
     @Before

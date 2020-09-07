@@ -230,6 +230,7 @@ public class CategoriesControllerTest {
         Assert.assertEquals(responseCategory.getDescription(), freshCategory.getDescription());
     }
 
+    @Test
     public void should_throw_exception_when_retrieving_with_invalid_id() {
         CategoriesController controller = new CategoriesController(categoryService);
         Exception exception = null;
