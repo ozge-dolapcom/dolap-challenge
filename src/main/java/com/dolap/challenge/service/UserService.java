@@ -21,10 +21,11 @@ public class UserService {
         return userRepository.getUserByUsername(username);
     }
 
-    public User register(String username, String password) {
+    public User register(String username, String password, String role) {
         User user = new User();
         user.setUsername(username);
         user.setPassword(passwordEncoder.encode(password));
+        user.setRole(role == null ? User.ROLE_USER : role);
 
         return userRepository.save(user);
     }

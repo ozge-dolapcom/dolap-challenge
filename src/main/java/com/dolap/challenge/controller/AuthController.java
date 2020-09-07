@@ -47,7 +47,7 @@ public class AuthController {
 
     @PostMapping("/register")
     public AuthResponse register(@RequestBody AuthRequest authRequest) {
-        User user = userService.register(authRequest.getUsername(), authRequest.getPassword());
+        User user = userService.register(authRequest.getUsername(), authRequest.getPassword(), authRequest.getRole());
         try {
             authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(authRequest.getUsername(), authRequest.getPassword()));
         } catch (BadCredentialsException badCredentialsException) {
