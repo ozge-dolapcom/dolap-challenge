@@ -36,9 +36,10 @@ public class ProductsController extends BaseController {
     }
 
     /**
-     * Retrieves a list of products with the defined criteria by the request parameters
+     * Retrieves a list of products of the given category with the defined criteria by the request parameters
      * Defaults to order by id desc offset 0 limit 20
      *
+     * @param categoryId is the category id of the product (required)
      * @param sortBy is the sort column
      * @param sortOrder is the direction of the sort - asc or desc
      * @param page is the offset
@@ -57,6 +58,7 @@ public class ProductsController extends BaseController {
 
     /**
      * Updates a product
+     * Category information is necessary.
      *
      * @param id id of the product you want to update
      * @param updatedProduct contains the information about the values you want to update to

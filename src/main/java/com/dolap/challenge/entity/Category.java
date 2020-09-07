@@ -15,21 +15,39 @@ public class Category {
     @GeneratedValue
     private Long id;
 
+    /**
+     * Name of the category
+     */
     @NotBlank(message = "{com.dolap.challenge.entity.Category.name.validation.notBlankMessage}")
     private String name;
 
+    /**
+     * Description of the category
+     */
     @NotBlank(message = "{com.dolap.challenge.entity.Category.description.validation.notBlankMessage}")
     private String description;
 
+    /**
+     * Sub category list of the category fetched EAGER.
+     * Sub categories are listed in ASC order in a parent category.
+     */
     @OneToMany(mappedBy = "parentCategory", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("orderNum ASC")
     private List<Category> subCategoryList;
 
+    /**
+     * Parent category information
+     * Used only for "write" (deserialization), not accessed during serialization ("read")
+     */
     @ManyToOne(fetch = FetchType.LAZY, optional = true)
     @JoinColumn(name = "parent_category_id")
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private Category parentCategory;
 
+    /**
+     * Order num of the category to determine the order of category on the result list or page.
+     * Categories with small order num will be shown first.
+     */
     @NotNull(message = "{com.dolap.challenge.entity.Category.orderNum.validation.notNullMessage}")
     @Min(value = 0, message = "{com.dolap.challenge.entity.Category.orderNum.validation.minMessage}")
     private Integer orderNum;

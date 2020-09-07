@@ -32,6 +32,7 @@ public class ProductService {
      * @param productRepository the interface that provides the connection with the data layer.
      * @param entityManager the interface used to lock the records
      * @param messages the interface we used to pull the relevant messages depending on the locale set
+     * @param categoryService the interface used to find the related category
      */
     public ProductService(ProductRepository productRepository, EntityManager entityManager, Messages messages, CategoryService categoryService) {
         this.productRepository = productRepository;
@@ -42,6 +43,7 @@ public class ProductService {
 
     /**
      * Adds a new product and saves it through the repository.
+     * In case the provided category information/id is not valid, @{see CategoryNotFoundException} is thrown
      * Once saved, the updated product is returned back to the caller
      *
      * @param product is the product to be saved
@@ -57,12 +59,13 @@ public class ProductService {
     }
 
     /**
-     * Returns a list of products from the repository / data layer.
+     * Returns a list of products of the given category from the repository / data layer.
+     * All products of the given category and below sub categories (whole tree structure below given category) will be fetched.
+     *
      * Ideally we'd use elasticsearch or solr to search the products but in this context
      * loading from the database should be fair enough.
      *
-     *
-     * @param categoryId
+     * @param categoryId is the id of category you want to get products of
      * @param sortBy is the field you want to on
      * @param sortOrder whether it is desc or asc by the sort column {@see sortBy}
      * @param page defines the offset
@@ -75,6 +78,12 @@ public class ProductService {
         return productRepository.findAllByCategory(idList, PageRequest.of(page, limit, getSort(sortBy, sortOrder)));
     }
 
+    /**
+     * Returns the list of ids including id of rootCategory and ids of all sub categories (whole tree structure below given rootCategory)
+     *
+     * @param rootCategory is the root category that will be investigated
+     * @return the list of ids including id of rootCategory and ids of all sub categories (whole tree structure below given rootCategory)
+     */
     private ArrayList<Long> findAllCategoryTreeIds(Category rootCategory){
         ArrayList<Long> idList = new ArrayList<>();
         idList.add(rootCategory.getId());
@@ -108,6 +117,7 @@ public class ProductService {
 
     /**
      * Given the id of the product, it is updated with the new values provided
+     * In case the provided category information/id is not valid, @{see CategoryNotFoundException} is thrown
      * In case the provided id is not valid, @{see ProductNotFoundException} is thrown
      *
      * @param id is the id of the product you want to update
@@ -133,7 +143,6 @@ public class ProductService {
 
     /**
      * Deletes the product from the database when valid id is provided
-     * Nothing happens if the id is invalid
      *
      * @param id is the product id you want to delete
      */

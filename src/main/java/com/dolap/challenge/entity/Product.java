@@ -13,7 +13,7 @@ import javax.validation.constraints.Positive;
 import java.math.BigDecimal;
 
 /**
- * Defines a product where merchants can add / remove / update
+ * Defines a product where merchants can add / remove / update / delete
  * and "customers" can purchase.
  */
 @Entity
@@ -50,6 +50,9 @@ public class Product {
     @Positive(message = "{com.dolap.challenge.entity.Product.price.validation.positiveMessage}")
     private BigDecimal price;
 
+    /**
+     * Category of the product (required)
+     */
     @ManyToOne(optional = false)
     @NotNull(message = "{com.dolap.challenge.entity.Product.category.validation.notNullMessage}")
     @JsonIgnoreProperties({"subCategoryList", "orderNum"})
