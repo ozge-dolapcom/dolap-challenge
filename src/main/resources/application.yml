@@ -3,17 +3,17 @@ server:
 jwt:
   secret: super-complicated-secret-goes-here
 spring:
-  datasource:
-    platform: postgres
-    url: jdbc:postgresql://localhost:5432/main
-    driverClassName: org.postgresql.Driver
-    username: root
-    password: pass
 #  datasource:
-#    url: jdbc:hsqldb:hsql:/localhost:9001/main/db
-#    driverClassName: org.hsqldb.jdbcDriver
+#    platform: postgres
+#    url: jdbc:postgresql://localhost:5432/main
+#    driverClassName: org.postgresql.Driver
 #    username: root
 #    password: pass
+  datasource:
+    url: jdbc:hsqldb:hsql:/localhost:9001/main/db
+    driverClassName: org.hsqldb.jdbcDriver
+    username: root
+    password: pass
   jpa:
     show-sql: true
     open-in-view: false
