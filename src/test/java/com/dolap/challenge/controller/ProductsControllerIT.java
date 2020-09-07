@@ -178,6 +178,28 @@ public class ProductsControllerIT {
     }
 
     @Test
+    public void should_throw_ex_when_add_product_without_admin_role() throws Exception {
+        MockHttpServletRequestBuilder request = MockMvcRequestBuilders.post("/products");
+        request.content(productJson.toString());
+        request.contentType("application/json");
+        request.header("Authorization", "Bearer " + this.jwtToken);
+        userService.updateRole(testUserName, User.ROLE_USER);
+
+        MvcResult mvcResult = mvc.perform(request).andReturn();
+        Assert.assertEquals(HttpStatus.FORBIDDEN.value(), mvcResult.getResponse().getStatus());
+    }
+
+    @Test
+    public void should_throw_ex_when_add_product_without_token() throws Exception {
+        MockHttpServletRequestBuilder request = MockMvcRequestBuilders.post("/products");
+        request.content(productJson.toString());
+        request.contentType("application/json");
+
+        MvcResult mvcResult = mvc.perform(request).andReturn();
+        Assert.assertEquals(HttpStatus.FORBIDDEN.value(), mvcResult.getResponse().getStatus());
+    }
+
+    @Test
     public void should_throw_ex_when_add_product_with_invalid_params_given() throws Exception {
         MockHttpServletRequestBuilder request = MockMvcRequestBuilders.post("/products");
         productJson.remove("name");
@@ -286,5 +308,103 @@ public class ProductsControllerIT {
         Assert.assertNotNull(exception);
         Assert.assertNull(foundProduct);
         Assert.assertTrue(exception instanceof ProductNotFoundException);
+    }
+
+    @Test
+    public void should_throw_ex_when_delete_without_admin_role() throws Exception {
+        Product addedProduct = productService.addProduct(product);
+        MockHttpServletRequestBuilder request = MockMvcRequestBuilders.delete("/products/" + addedProduct.getId());
+        request.contentType("application/json");
+        request.header("Authorization", "Bearer " + this.jwtToken);
+        userService.updateRole(testUserName, User.ROLE_USER);
+
+        MvcResult mvcResult = mvc.perform(request).andReturn();
+        Assert.assertEquals(HttpStatus.FORBIDDEN.value(), mvcResult.getResponse().getStatus());
+    }
+
+    @Test
+    public void should_throw_ex_when_delete_without_token() throws Exception {
+        Product addedProduct = productService.addProduct(product);
+        MockHttpServletRequestBuilder request = MockMvcRequestBuilders.delete("/products/" + addedProduct.getId());
+        request.contentType("application/json");
+
+        MvcResult mvcResult = mvc.perform(request).andReturn();
+        Assert.assertEquals(HttpStatus.FORBIDDEN.value(), mvcResult.getResponse().getStatus());
+    }
+
+    @Test
+    public void should_update_product_with_valid_params_given() throws Exception {
+        Product addedProduct = productService.addProduct(product);
+        MockHttpServletRequestBuilder request = MockMvcRequestBuilders.put("/products/" + addedProduct.getId());
+        productJson.remove("name");
+        String updatedName = "Update product name";
+        productJson.addProperty("name", updatedName);
+        request.content(productJson.toString());
+        request.contentType("application/json");
+        request.header("Authorization", "Bearer " + this.jwtToken);
+
+        MvcResult mvcResult = mvc.perform(request).andReturn();
+        JsonObject responseJson = new JsonParser().parse(mvcResult.getResponse().getContentAsString()).getAsJsonObject();
+
+        Assert.assertEquals(HttpStatus.OK.value(), mvcResult.getResponse().getStatus());
+        Assert.assertNotNull(responseJson);
+        Assert.assertEquals(updatedName, responseJson.get("name").getAsString());
+    }
+
+    @Test
+    public void should_throw_ex_when_update_product_with_invalid_params() throws Exception {
+        Product addedProduct = productService.addProduct(product);
+        MockHttpServletRequestBuilder request = MockMvcRequestBuilders.put("/products/" + addedProduct.getId());
+        productJson.remove("category"); // intentionally removed
+        request.content(productJson.toString());
+        request.contentType("application/json");
+        String localeValue = "tr";
+        request.header("Accept-Language", localeValue);
+        request.header("Authorization", "Bearer " + this.jwtToken);
+
+        MvcResult mvcResult = mvc.perform(request).andReturn();
+        JsonObject responseJson = new JsonParser().parse(mvcResult.getResponse().getContentAsString()).getAsJsonObject();
+
+        Assert.assertEquals(HttpStatus.BAD_REQUEST.value(), mvcResult.getResponse().getStatus());
+        Assert.assertNotNull(responseJson);
+        Assert.assertEquals(messages.get("com.dolap.challenge.entity.Product.category.validation.notNullMessage", java.util.Locale.forLanguageTag(localeValue)), responseJson.get("message").getAsString());
+    }
+
+    @Test
+    public void should_throw_ex_when_update_product_without_admin_role() throws Exception {
+        Product addedProduct = productService.addProduct(product);
+        MockHttpServletRequestBuilder request = MockMvcRequestBuilders.put("/products/" + addedProduct.getId());
+        request.content(productJson.toString());
+        request.contentType("application/json");
+        request.header("Authorization", "Bearer " + this.jwtToken);
+        userService.updateRole(testUserName, User.ROLE_USER);
+
+        MvcResult mvcResult = mvc.perform(request).andReturn();
+        Assert.assertEquals(HttpStatus.FORBIDDEN.value(), mvcResult.getResponse().getStatus());
+    }
+
+    @Test
+    public void should_throw_ex_when_update_product_without_token() throws Exception {
+        Product addedProduct = productService.addProduct(product);
+        MockHttpServletRequestBuilder request = MockMvcRequestBuilders.put("/products/" + addedProduct.getId());
+        request.content(productJson.toString());
+        request.contentType("application/json");
+
+        MvcResult mvcResult = mvc.perform(request).andReturn();
+        Assert.assertEquals(HttpStatus.FORBIDDEN.value(), mvcResult.getResponse().getStatus());
+    }
+
+    @Test
+    public void should_find_product_without_token() throws Exception {
+        Product addedProduct = productService.addProduct(product);
+        MockHttpServletRequestBuilder request = MockMvcRequestBuilders.get("/products/" + addedProduct.getId());
+        request.contentType("application/json");
+        userService.updateRole(testUserName, User.ROLE_USER);
+
+        MvcResult mvcResult = mvc.perform(request).andReturn();
+        JsonObject responseJson = new JsonParser().parse(mvcResult.getResponse().getContentAsString()).getAsJsonObject();
+
+        Assert.assertEquals(HttpStatus.OK.value(), mvcResult.getResponse().getStatus());
+        Assert.assertEquals(addedProduct.getId().longValue(), responseJson.get("id").getAsLong());
     }
 }

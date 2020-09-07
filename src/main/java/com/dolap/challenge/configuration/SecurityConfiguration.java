@@ -13,7 +13,6 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
@@ -48,13 +47,11 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
         http.csrf().disable()
                 .authorizeRequests()
                 .antMatchers("/auth/**").permitAll()
-                .antMatchers("/payments").permitAll()
-                .antMatchers(HttpMethod.GET, "/products").permitAll()
-                .antMatchers(HttpMethod.GET, "/products/**").permitAll()
-                .antMatchers(HttpMethod.GET, "/categories").permitAll()
-                .antMatchers(HttpMethod.GET, "/categories/**").permitAll()
-                .antMatchers("/categories").hasAuthority(User.ROLE_ADMIN)
-                .antMatchers("/products").hasAuthority(User.ROLE_ADMIN)
+                .antMatchers("/payments").permitAll() // TODO
+                .antMatchers(HttpMethod.GET, "/products", "/products/**").permitAll()
+                .antMatchers(HttpMethod.GET, "/categories", "/categories/**").permitAll()
+                .antMatchers("/products", "/products/**").hasAuthority(User.ROLE_ADMIN)
+                .antMatchers("/categories", "/categories/**").hasAuthority(User.ROLE_ADMIN)
                 .anyRequest().authenticated()
                 .and().sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS);
